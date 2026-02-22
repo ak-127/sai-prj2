@@ -52,9 +52,16 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: latest
+          version: v3.14.0
+
+      - name: Debug folder structure
+        run: |
+          pwd
+          ls -la
+          ls -R
 
       - name: Helm Deploy to EKS
+      
         env:
           IMAGE_TAG: ${{ steps.release.outputs.new-tag }}
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
