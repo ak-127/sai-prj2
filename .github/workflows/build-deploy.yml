@@ -62,6 +62,7 @@ jobs:
         run: |
           helm upgrade --install django-release ./django-chart \
             --create-namespace \
+            --namespace django-prod \
             -f ./django-chart/values.yaml \
             --set django.image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
             --set image.tag=$IMAGE_TAG \
