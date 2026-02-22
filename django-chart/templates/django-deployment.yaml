@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.django.replicas }}
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: {{ .Values.django.image }}
+        ports:
+        - containerPort: {{ .Values.django.port }}
+        envFrom:
+        - configMapRef:
+            name: django-config
+        - secretRef:
+            name: django-secret
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        volumeMounts:
+          - mountPath: /vol/web/static
+            name: static-volume
+          - mountPath: /vol/web/media
+            name: media-volume
+      volumes:
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: staticvolume-pvc
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: mediavolume-pvc

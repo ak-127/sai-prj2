@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+  namespace: {{ .Values.namespace }}
+data:
+  DEBUG: {{ .Values.config.DEBUG | quote }}
+  POSTGRES_DB: {{ .Values.config.POSTGRES_DB | quote }}
+  POSTGRES_USER: {{ .Values.config.POSTGRES_USER | quote }}
+  DJANGO_SUPERUSER_USERNAME: {{ .Values.config.DJANGO_SUPERUSER_USERNAME | quote }}
+  DJANGO_SUPERUSER_EMAIL: {{ .Values.config.DJANGO_SUPERUSER_EMAIL | quote }}
+  nginx.conf: |-
+{{ .Files.Get "files/nginx.conf" | indent 4 }}

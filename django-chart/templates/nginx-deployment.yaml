@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: static-volume
+            mountPath: /vol/web/static
+          - name: media-volume
+            mountPath: /vol/web/media
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: django-config
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: staticvolume-pvc
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: mediavolume-pvc

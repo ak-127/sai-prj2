@@ -1,0 +1,28 @@
+namespace: django-prod
+django:
+  replicas: 1
+  port: 8000
+
+postgres:
+  image: postgres:16
+  storage: 5Gi
+  port: 5432
+
+config:
+  DEBUG: "True"
+  POSTGRES_DB: saikrupa_db2
+  POSTGRES_USER: saikrupa_db_user2
+  DJANGO_SUPERUSER_USERNAME: admin
+  DJANGO_SUPERUSER_EMAIL: admin@example.com
+
+ingress:
+  enabled: true
+  host: django.akashkamble.in
+  className: alb
+  clusterIssuer: letsencrypt
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  cpuUtilization: 70
