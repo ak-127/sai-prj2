@@ -66,12 +66,12 @@ jobs:
             -f ./django-chart/values.yaml \
             --set django.image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
             --set image.tag=$IMAGE_TAG \
-            --set secrets.SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
+            --set-string secrets.SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
             --set secrets.POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
             --set secrets.DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }} \
             --set secrets.CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} \
             --atomic \
-            --timeout 120s
+            --timeout 600s
 
       - name: Verify Helm Release
         run: |
