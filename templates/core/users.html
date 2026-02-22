@@ -1,0 +1,145 @@
+{% extends "core/base_dashboard.html" %}
+
+{% load static %}
+
+{% block body %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        {% include "core/sidebar.html" %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                {% include "core/navbar.html" %}
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Users</h1>
+                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                            class="bi bi-person-fill-add"></i> Add User</a>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+
+                <div class="container mt-5">
+                    <div class="row">
+                        {% for user in users %}
+
+                        <div class="col mb-4">
+                            <div class=" card" style="width: 18rem;">
+                                <img src="{{user.profile.profile_image.url}}" class="card-img-center" alt="User Image">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">{{user.get_full_name | capfirst}}</h5>
+                                    <p class="card-text">Web Developer at XYZ Company</p>
+                                    <a href="#" class="btn btn-primary"><i class="bi bi-journal-bookmark-fill"></i> Detail</a>
+                                </div>
+                            </div>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+
+
+
+
+                <div class="container mt-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="overview-tab" data-toggle="tab" href="#overview"
+                                        role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="posts-tab" data-toggle="tab" href="#posts" role="tab"
+                                        aria-controls="posts" aria-selected="false">Posts</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
+                                        aria-controls="settings" aria-selected="false">Permisison</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="profileTabsContent">
+                                <div class="tab-pane fade show active" id="overview" role="tabpanel"
+                                    aria-labelledby="overview-tab">
+                                    <h5 class="card-title">John Doe</h5>
+                                    <p class="card-text">Web Developer at XYZ Company</p>
+                                </div>
+                                <div class="tab-pane fade" id="posts" role="tabpanel" aria-labelledby="posts-tab">
+                                    <h5 class="card-title">Posts</h5>
+                                    <p class="card-text">This is where user posts will be displayed.</p>
+                                </div>
+                                <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                                    <h5 class="card-title">Permission</h5>
+                                    <p class="card-text">User settings go here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Your Website 2021</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{% static "core/vendor/jquery/jquery.min.js" %}"></script>
+    <script src="{% static "core/vendor/bootstrap/js/bootstrap.bundle.min.js" %}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{% static "core/vendor/jquery-easing/jquery.easing.min.js" %}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{% static "core/js/sb-admin-2.min.js" %}"></script>
+
+    <!-- Page level plugins -->
+    <script src="{% static "core/vendor/chart.js/Chart.min.js" %}"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{% static "core/js/demo/chart-area-demo.js" %}"></script>
+    <script src="{% static "core/js/demo/chart-pie-demo.js" %}"></script>
+
+    
+
+</body>
+
+{% endblock body %}

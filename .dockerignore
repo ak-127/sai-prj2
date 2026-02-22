@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Django stuff
+db.sqlite3
+staticfiles/
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+
+# Docker
+docker-compose.yml
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Tests & docs (optional)
+tests/
+doc/
+install.sh
+Jenkinsfile
+nginx.conf
+README.md

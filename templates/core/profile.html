@@ -1,0 +1,22 @@
+{% extends "core/base_dashboard.html" %}
+
+{% block body %}
+
+    <div class="container mt-5">
+        <h1>Profile</h1>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ user_form }} 
+                {% comment %} crispy {% endcomment %}
+            </div>
+            <div class="form-group">
+                {{ profile_form }}
+            </div>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </form>
+    </div>
+
+{% endblock body %}
+
+
