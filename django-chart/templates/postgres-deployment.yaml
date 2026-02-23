@@ -19,6 +19,11 @@ spec:
         ports:
         - containerPort: {{ .Values.postgres.port }}
         env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: django-secrets
+              key: SECRET_KEY
         - name: POSTGRES_DB
           valueFrom:
             configMapKeyRef:
