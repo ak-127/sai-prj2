@@ -54,8 +54,47 @@ jobs:
         with:
           version: v3.14.0
 
-      - name: Helm Deploy to EKS
+      # - name: Helm Deploy to EKS
 
+      #   env:
+      #     IMAGE_TAG: ${{ steps.release.outputs.new-tag }}
+      #     ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+      #   run: |
+      #     helm upgrade --install django-release ./django-chart \
+      #       --create-namespace \
+      #       --namespace django-prod \
+      #       -f ./django-chart/values.yaml \
+      #       --set django.image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
+      #       --set image.tag=$IMAGE_TAG \
+      #       --set-string secrets.SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
+      #       --set secrets.POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+      #       --set secrets.DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }} \
+      #       --set secrets.CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} \
+      #       --atomic \
+      #       --timeout 600s
+
+      # - name: Verify Helm Release
+      #   run: |
+      #     helm status django-release --namespace django-prod
+
+      - name: Create Kubernetes Secrets
+        env:
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+          CSRF_TRUSTED_ORIGINS: ${{ secrets.CSRF_TRUSTED_ORIGINS }}
+        run: |
+          kubectl create secret generic django-secrets \
+            --namespace django-prod \
+            --from-literal=SECRET_KEY="$DJANGO_SECRET_KEY" \
+            --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+            --from-literal=DJANGO_SUPERUSER_PASSWORD="$DJANGO_SUPERUSER_PASSWORD" \
+            --from-literal=CSRF_TRUSTED_ORIGINS="$CSRF_TRUSTED_ORIGINS" \
+            --save-config \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Helm Deploy to EKS
         env:
           IMAGE_TAG: ${{ steps.release.outputs.new-tag }}
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
@@ -66,13 +105,5 @@ jobs:
             -f ./django-chart/values.yaml \
             --set django.image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
             --set image.tag=$IMAGE_TAG \
-            --set-string secrets.SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
-            --set secrets.POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-            --set secrets.DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }} \
-            --set secrets.CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} \
             --atomic \
             --timeout 600s
-
-      - name: Verify Helm Release
-        run: |
-          helm status django-release --namespace django-prod
