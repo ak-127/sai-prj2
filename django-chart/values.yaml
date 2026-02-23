@@ -28,7 +28,7 @@ autoscaling:
   cpuUtilization: 70
 
 secrets:
-  existingSecret: true
+  existingSecret: false
   SECRET_KEY: ""
   POSTGRES_PASSWORD: ""
   DJANGO_SUPERUSER_PASSWORD: ""
