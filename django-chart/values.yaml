@@ -26,10 +26,3 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 5
   cpuUtilization: 70
-
-secrets:
-  existingSecret: false
-  SECRET_KEY: ""
-  POSTGRES_PASSWORD: ""
-  DJANGO_SUPERUSER_PASSWORD: ""
-  CSRF_TRUSTED_ORIGINS: ""
