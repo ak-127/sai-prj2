@@ -7,6 +7,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-Package_Manager-0F1689?style=for-the-badge&logo=helm&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 **A fully automated, production-grade CI/CD pipeline that builds, containerizes, and deploys a Django application to AWS EKS using Helm — with zero-downtime releases, automated rollbacks, and environment-specific configurations.**
 
@@ -234,13 +235,6 @@ Configure these secrets in your GitHub repository (`Settings → Secrets and var
 ---
 
 📖 **Full deployment setup:** See [DEPLOYMENT.md](./DEPLOYMENT.md)
-
----
-
-
-## 👤 LICENSE 
-
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
