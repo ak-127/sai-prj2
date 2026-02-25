@@ -238,10 +238,9 @@ Configure these secrets in your GitHub repository (`Settings → Secrets and var
 ---
 
 
-## 👤 Author
+## 👤 LICENSE 
 
-**Akash** — DevOps Engineer  
-📧 [GitHub Profile](https://github.com/ak-127)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
