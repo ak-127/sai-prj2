@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>sai-prj2 — Django on AWS EKS | Akash Kamble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#03080e;
+  --bg2:#050d16;
+  --bg3:#071320;
+  --card:#081828;
+  --card2:#0a1e30;
+  --b1:rgba(32,210,140,.12);
+  --b2:rgba(32,210,140,.22);
+  --g:#20d28c;
+  --g2:#17f0a0;
+  --b:#3b82f6;
+  --b3:#60a5fa;
+  --purple:#8b5cf6;
+  --amber:#f59e0b;
+  --red:#f43f5e;
+  --text:#9dc4d8;
+  --text2:#4a7a96;
+  --text3:#224455;
+  --white:#dff0ff;
+  --fh:'Outfit',sans-serif;
+  --fm:'Space Mono',monospace;
+  --fb:'DM Sans',sans-serif;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+#cur{width:7px;height:7px;background:var(--g);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;mix-blend-mode:screen}
+#cur2{width:28px;height:28px;border:1.5px solid rgba(32,210,140,.35);border-radius:50%;position:fixed;pointer-events:none;z-index:9998;transition:width .3s,height .3s,border-color .3s}
+#cur2.h{width:48px;height:48px;border-color:var(--g)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--g);border-radius:2px}
+
+/* HEX GRID BG */
+.hbg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4}
+.hbg svg{width:100%;height:100%}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 64px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,8,14,.9);border-bottom:1px solid var(--b1);backdrop-filter:blur(24px)}
+.nl{font-family:var(--fm);font-size:12px;color:var(--g);text-decoration:none;letter-spacing:1px}
+.nl span{color:var(--text2)}
+.nlinks{display:flex;gap:4px;list-style:none}
+.nlinks a{font-family:var(--fm);font-size:10px;color:var(--text2);text-decoration:none;padding:5px 12px;border-radius:6px;border:1px solid transparent;transition:.2s;letter-spacing:.5px;text-transform:uppercase}
+.nlinks a:hover{color:var(--g);border-color:var(--b1);background:rgba(32,210,140,.04)}
+.npill{background:rgba(32,210,140,.06);border:1px solid rgba(32,210,140,.2);color:var(--g);font-family:var(--fm);font-size:10px;padding:4px 14px;border-radius:20px;display:flex;align-items:center;gap:7px;letter-spacing:.5px}
+.npill::before{content:'';width:5px;height:5px;background:var(--g);border-radius:50%;box-shadow:0 0 8px var(--g);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* SECTIONS */
+section{position:relative;z-index:1;padding:100px 80px}
+section:first-of-type{padding-top:130px}
+
+.slabel{font-family:var(--fm);font-size:10px;color:var(--g);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;opacity:.7}
+.stitle{font-family:var(--fh);font-size:clamp(26px,3.8vw,46px);font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
+.stitle span{background:linear-gradient(120deg,var(--g2),var(--b3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sdesc{font-size:14.5px;color:var(--text2);line-height:1.8;max-width:680px}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.on{opacity:1;transform:translateY(0)}
+
+/* ═══ HERO ═══ */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:130px 80px 80px;position:relative;overflow:hidden}
+.hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hero-content{position:relative;z-index:1}
+
+.hrb{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.rb{background:var(--card2);border:1px solid var(--b1);border-radius:8px;padding:6px 14px;font-family:var(--fm);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:7px}
+.rb .dot{width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);animation:pulse 2s infinite}
+.rb.k8s{border-color:rgba(59,130,246,.2);color:var(--b3)}
+
+.heroh{font-family:var(--fh);font-size:clamp(40px,5.5vw,76px);font-weight:900;color:var(--white);line-height:1.02;letter-spacing:-2.5px;margin-bottom:10px}
+.heroh span{background:linear-gradient(120deg,var(--g2) 0%,var(--b3) 50%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.herosub{font-family:var(--fm);font-size:13.5px;color:var(--text2);margin-bottom:40px;max-width:580px;line-height:1.65}
+
+.hpills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:44px}
+.hpill{background:var(--card2);border:1px solid var(--b1);border-radius:20px;padding:6px 14px;font-family:var(--fm);font-size:10.5px;color:var(--text2);transition:.25s}
+.hpill:hover{border-color:var(--b2);color:var(--g)}
+.hpill.g{border-color:rgba(32,210,140,.2);color:var(--g)}
+.hpill.b{border-color:rgba(59,130,246,.2);color:var(--b3)}
+.hpill.p{border-color:rgba(139,92,246,.2);color:var(--purple)}
+.hpill.a{border-color:rgba(245,158,11,.2);color:var(--amber)}
+
+.hbtns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:56px}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:12px 24px;border-radius:10px;font-family:var(--fh);font-size:13px;font-weight:700;letter-spacing:.5px;text-decoration:none;transition:.3s;cursor:none;border:none}
+.btnp{background:linear-gradient(135deg,var(--g),#059669);color:#03080e;box-shadow:0 0 30px rgba(32,210,140,.2)}
+.btnp:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(32,210,140,.4)}
+.btng{background:transparent;border:1px solid var(--b2);color:var(--text)}
+.btng:hover{border-color:var(--g);color:var(--g);background:rgba(32,210,140,.05)}
+
+.hstats{display:flex;border:1px solid var(--b1);border-radius:14px;overflow:hidden;max-width:fit-content}
+.hs{padding:18px 34px;border-right:1px solid var(--b1);text-align:center}
+.hs:last-child{border-right:none}
+.hsn{font-family:var(--fh);font-size:30px;font-weight:800;color:var(--white);line-height:1}
+.hsn span{color:var(--g)}
+.hsl{font-family:var(--fm);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+
+/* ═══ GITHUB ACTIONS PIPELINE ═══ */
+#pipeline{background:var(--bg2);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1)}
+.pwrap{overflow-x:auto;padding-bottom:16px}
+.pflow{display:flex;align-items:flex-start;gap:0;min-width:1000px;padding:40px 0}
+
+.pnode{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1}
+.pbox{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:18px 14px;text-align:center;width:130px;transition:.3s;position:relative;cursor:default}
+.pbox:hover{border-color:var(--b2);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.6)}
+.pbox.active{border-color:rgba(32,210,140,.4);box-shadow:0 0 24px rgba(32,210,140,.1)}
+.pbox.final{border-color:rgba(59,130,246,.4);box-shadow:0 0 24px rgba(59,130,246,.1)}
+.pbox.warn{border-color:rgba(245,158,11,.3)}
+.pico{font-size:26px;margin-bottom:7px}
+.ptitle{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--white)}
+.psub{font-family:var(--fm);font-size:9px;color:var(--text3);margin-top:2px}
+.pstatus{position:absolute;top:-5px;right:-5px;width:12px;height:12px;border-radius:50%;background:var(--g);box-shadow:0 0 7px var(--g);border:2px solid var(--bg2);animation:pulse 2s infinite}
+.pstatus.b{background:var(--b3);box-shadow:0 0 7px var(--b3)}
+
+.parr{flex:0 0 36px;display:flex;align-items:center;justify-content:center;position:relative;padding-top:38px}
+.paline{width:100%;height:1.5px;background:var(--b1);position:relative;overflow:hidden;border-radius:2px}
+.paline::after{content:'';position:absolute;top:0;left:-100%;width:80%;height:100%;background:linear-gradient(90deg,transparent,var(--g),transparent);animation:flowline 2.5s ease-in-out infinite}
+@keyframes flowline{0%{left:-80%}100%{left:100%}}
+.pahead{color:var(--g);font-size:12px;position:absolute;right:-3px;top:30px}
+
+.pstage{font-family:var(--fm);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+
+/* ═══ ARCHITECTURE SVG ═══ */
+#arch{background:var(--bg)}
+.asvgwrap{background:var(--bg2);border:1px solid var(--b1);border-radius:20px;padding:36px;overflow:hidden;position:relative;margin-top:56px}
+.asvgwrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(32,210,140,.04) 0%,transparent 70%);pointer-events:none}
+
+/* ═══ HELM CHART ═══ */
+#helm{background:var(--bg2);border-top:1px solid var(--b1);border-bottom:1px solid var(--b1)}
+.helm-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;margin-top:50px;align-items:start}
+.helm-tree{background:var(--bg);border:1px solid var(--b1);border-radius:16px;padding:28px}
+.htitle{font-family:var(--fm);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.htitle::before{content:'';width:7px;height:7px;background:var(--g);border-radius:50%}
+.tree-item{font-family:var(--fm);font-size:12px;color:var(--text2);padding:5px 0;display:flex;align-items:center;gap:0}
+.tree-item.dir{color:var(--g);font-weight:700}
+.tree-item.file{color:var(--b3)}
+.tree-item.yaml{color:var(--amber)}
+.ti{color:var(--text3);margin-right:4px}
+
+.helm-vals{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hval{background:var(--bg);border:1px solid var(--b1);border-radius:12px;padding:18px;transition:.3s}
+.hval:hover{border-color:var(--b2);transform:translateY(-2px)}
+.hval-icon{font-size:22px;margin-bottom:8px}
+.hval-title{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--white);margin-bottom:5px}
+.hval-desc{font-family:var(--fm);font-size:10.5px;color:var(--text2);line-height:1.6}
+
+/* CODE BLOCK */
+.cb{background:var(--bg);border:1px solid var(--b1);border-radius:14px;overflow:hidden;margin-top:20px}
+.cbh{background:rgba(255,255,255,.02);padding:10px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.cbdots{display:flex;gap:5px}.cbdots span{width:9px;height:9px;border-radius:50%}
+.cbdots .r{background:#ff5f57}.cbdots .y{background:#febc2e}.cbdots .g2{background:#28c840}
+.cbfn{font-family:var(--fm);font-size:10px;color:var(--text3)}
+.cbbody{padding:18px;font-family:var(--fm);font-size:11.5px;line-height:1.9;overflow-x:auto}
+.kw{color:#c792ea}.str{color:#9ae68a}.cmt{color:#445e6a;font-style:italic}
+.fn{color:var(--b3)}.num{color:#f78c6c}.var{color:var(--g2)}.op{color:var(--text3)}
+pre{white-space:pre}
+
+/* ═══ OIDC SECURITY ═══ */
+#oidc{background:var(--bg)}
+.oidc-flow{background:var(--bg2);border:1px solid var(--b1);border-radius:20px;padding:40px;margin-top:50px;position:relative;overflow:hidden}
+.oidc-flow::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 40% at 50% 50%,rgba(59,130,246,.04) 0%,transparent 70%);pointer-events:none}
+
+/* ═══ DEPLOY GUIDE ═══ */
+#deploy{background:var(--bg2);border-top:1px solid var(--b1)}
+.dphases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px}
+.dph{background:var(--card);border:1px solid var(--b1);border-radius:16px;padding:26px;transition:.3s;position:relative;overflow:hidden}
+.dph::after{content:attr(data-num);position:absolute;bottom:-12px;right:8px;font-family:var(--fh);font-size:90px;font-weight:900;color:rgba(32,210,140,.035);line-height:1;pointer-events:none}
+.dph:hover{border-color:var(--b2);transform:translateY(-3px);box-shadow:0 20px 48px rgba(0,0,0,.5)}
+.dpnum{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--g),#059669);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;font-weight:800;color:var(--bg);margin-bottom:14px}
+.dptitle{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px}
+.dpcode{background:var(--bg);border:1px solid var(--b1);border-radius:8px;padding:10px 14px;font-family:var(--fm);font-size:10.5px;color:var(--g);margin-bottom:10px;line-height:1.8}
+.dpcode .cmnt{color:var(--text3);font-style:italic}
+.dpdesc{font-family:var(--fm);font-size:10.5px;color:var(--text2);line-height:1.65}
+
+/* ═══ TECH STACK ═══ */
+#stack{background:var(--bg);border-top:1px solid var(--b1)}
+.stk{margin-top:50px;border:1px solid var(--b1);border-radius:16px;overflow:hidden}
+.skrow{display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid var(--b1)}
+.skrow:last-child{border-bottom:none}
+.skrow.hdr{background:rgba(32,210,140,.03)}
+.skc{padding:15px 20px;font-family:var(--fm);font-size:12px;border-right:1px solid var(--b1)}
+.skc:last-child{border-right:none}
+.skc.cat{color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-size:10px;display:flex;align-items:center;gap:7px}
+.skc.tech{color:var(--white);font-weight:700}
+.skc.desc{color:var(--text2);font-size:11px}
+.skc.hdr{color:var(--g);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+
+/* ═══ SECURITY ═══ */
+#security{background:var(--bg2);border-top:1px solid var(--b1)}
+.secg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:50px}
+.secc{background:var(--card);border:1px solid var(--b1);border-radius:14px;padding:22px;transition:.3s;position:relative}
+.secc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--g),transparent);transform:scaleX(0);transition:.4s;transform-origin:left;border-radius:14px 14px 0 0}
+.secc:hover::before{transform:scaleX(1)}
+.secc:hover{border-color:var(--b2);transform:translateY(-3px)}
+.seci{font-size:24px;margin-bottom:10px}
+.sect{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--white);margin-bottom:7px}
+.secd{font-family:var(--fm);font-size:10.5px;color:var(--text2);line-height:1.7}
+
+/* ═══ ROADMAP ═══ */
+#roadmap{background:var(--bg);border-top:1px solid var(--b1)}
+.rlist{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:48px}
+.ri{background:var(--card);border:1px solid var(--b1);border-radius:12px;padding:18px;display:flex;align-items:flex-start;gap:12px;transition:.3s}
+.ri:hover{border-color:var(--b2)}
+.ribadge{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ribadge.d{background:rgba(32,210,140,.08);border:1px solid rgba(32,210,140,.2)}
+.ribadge.s{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)}
+.ribadge.f{background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)}
+.rititle{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px}
+.ridesc{font-family:var(--fm);font-size:10px;color:var(--text2);line-height:1.55}
+.ritag{display:inline-block;font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px;margin-top:5px}
+.ritag.d{background:rgba(32,210,140,.08);color:var(--g)}
+.ritag.s{background:rgba(245,158,11,.08);color:var(--amber)}
+.ritag.f{background:rgba(139,92,246,.08);color:var(--purple)}
+
+/* FOOTER */
+footer{padding:36px 80px;border-top:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:11px;color:var(--text3);position:relative;z-index:1;background:var(--bg)}
+footer span{color:var(--g)}
+.flinks{display:flex;gap:20px}
+.flinks a{color:var(--text3);text-decoration:none;transition:.2s}.flinks a:hover{color:var(--g)}
+
+@media(max-width:1100px){section{padding:80px 40px}#hero{padding:130px 40px 80px}.dphases{grid-template-columns:1fr 1fr}.helm-grid,.secg{grid-template-columns:1fr}.rlist{grid-template-columns:1fr}}
+@media(max-width:700px){section{padding:60px 20px}#hero{padding:120px 20px 60px}nav{padding:0 20px}.nlinks{display:none}.hstats{flex-direction:column}.dphases{grid-template-columns:1fr}footer{flex-direction:column;gap:10px;text-align:center;padding:24px 20px}}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<div id="cur2"></div>
+
+<!-- HEX GRID BG -->
+<div class="hbg">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <defs>
+    <pattern id="hex" x="0" y="0" width="60" height="52" patternUnits="userSpaceOnUse">
+      <polygon points="30,2 56,16 56,36 30,50 4,36 4,16" fill="none" stroke="rgba(32,210,140,0.055)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#hex)"/>
+</svg>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nl">ak-127<span>/sai-prj2</span></a>
+  <ul class="nlinks">
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#helm">Helm</a></li>
+    <li><a href="#oidc">Security</a></li>
+    <li><a href="#deploy">Deploy</a></li>
+    <li><a href="#stack">Stack</a></li>
+  </ul>
+  <div class="npill">EKS Production Ready</div>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<section id="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="hero-content reveal">
+    <div class="hrb">
+      <div class="rb"><span class="dot"></span>ak-127 / sai-prj2</div>
+      <div class="rb k8s">☸ AWS EKS</div>
+      <div class="rb" style="border-color:rgba(139,92,246,.2);color:var(--purple)">⎈ Helm v3</div>
+      <div class="rb" style="border-color:rgba(245,158,11,.2);color:var(--amber)">20+ Releases</div>
+    </div>
+    <h1 class="heroh">Kubernetes CI/CD<br/><span>on AWS EKS</span></h1>
+    <p class="herosub">Production-grade Django deployment pipeline using AWS EKS, Helm, and GitHub Actions — keyless OIDC auth, automated rollbacks, zero-downtime releases on every git push.</p>
+
+    <div class="hpills">
+      <div class="hpill g">☸️ Kubernetes EKS</div>
+      <div class="hpill b">🔧 GitHub Actions CI/CD</div>
+      <div class="hpill a">☁️ AWS ECR + IAM OIDC</div>
+      <div class="hpill">🐍 Django Application</div>
+      <div class="hpill p">⎈ Helm Charts</div>
+      <div class="hpill">🐳 Docker</div>
+      <div class="hpill g">🔐 Keyless Auth</div>
+      <div class="hpill b">📜 Cert Manager</div>
+      <div class="hpill">⚖️ AWS Load Balancer</div>
+    </div>
+
+    <div class="hbtns">
+      <a href="https://github.com/ak-127/sai-prj2" class="btn btnp" target="_blank">↗ View on GitHub</a>
+      <a href="#deploy" class="btn btng">📖 Deployment Guide</a>
+      <a href="#arch" class="btn btng">🏗 Architecture</a>
+    </div>
+
+    <div class="hstats">
+      <div class="hs"><div class="hsn">3</div><div class="hsl">Pipeline Jobs</div></div>
+      <div class="hs"><div class="hsn" style="color:var(--g)">5</div><div class="hsl">K8s Add-ons</div></div>
+      <div class="hs"><div class="hsn">20<span>+</span></div><div class="hsl">Releases</div></div>
+      <div class="hs"><div class="hsn">0</div><div class="hsl">Static Keys</div></div>
+      <div class="hs"><div class="hsn" style="color:var(--g)">✓</div><div class="hsl">Zero Downtime</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ PIPELINE ═══════ -->
+<section id="pipeline">
+  <div class="slabel">Automated Workflow</div>
+  <h2 class="stitle">GitHub Actions <span>CI/CD Pipeline</span></h2>
+  <p class="sdesc">Every <code style="background:var(--card);padding:2px 8px;border-radius:4px;font-family:var(--fm);font-size:12px;color:var(--g)">git push</code> to <code style="background:var(--card);padding:2px 8px;border-radius:4px;font-family:var(--fm);font-size:12px;color:var(--g)">main</code> triggers the full pipeline — from code checkout to live deployment on AWS EKS via Helm, with zero manual steps.</p>
+
+  <div class="pwrap reveal" style="margin-top:48px">
+    <div class="pflow">
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">👨‍💻</div>
+          <div class="ptitle">Git Push</div>
+          <div class="psub">main branch</div>
+        </div>
+        <div class="pstage">Developer</div>
+      </div>
+      <div class="parr"><div class="paline"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">🐙</div>
+          <div class="ptitle">GitHub</div>
+          <div class="psub">Actions triggered</div>
+        </div>
+        <div class="pstage">SCM Trigger</div>
+      </div>
+      <div class="parr"><div class="paline" style="--d:0.5s"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">🔐</div>
+          <div class="ptitle">OIDC Auth</div>
+          <div class="psub">AWS role assumed</div>
+        </div>
+        <div class="pstage">No Static Keys</div>
+      </div>
+      <div class="parr"><div class="paline" style="--d:1s"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">🐳</div>
+          <div class="ptitle">Docker Build</div>
+          <div class="psub">Tag + Push ECR</div>
+        </div>
+        <div class="pstage">Containerize</div>
+      </div>
+      <div class="parr"><div class="paline" style="--d:1.5s"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">⎈</div>
+          <div class="ptitle">Helm Deploy</div>
+          <div class="psub">upgrade --install</div>
+        </div>
+        <div class="pstage">K8s Package</div>
+      </div>
+      <div class="parr"><div class="paline" style="--d:2s"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox active">
+          <div class="pstatus"></div>
+          <div class="pico">☸️</div>
+          <div class="ptitle">AWS EKS</div>
+          <div class="psub">Rolling update</div>
+        </div>
+        <div class="pstage">Kubernetes</div>
+      </div>
+      <div class="parr"><div class="paline" style="--d:2.5s"></div><div class="pahead">›</div></div>
+
+      <div class="pnode">
+        <div class="pbox final">
+          <div class="pstatus b"></div>
+          <div class="pico">🌐</div>
+          <div class="ptitle">Live on ALB</div>
+          <div class="psub">HTTPS · TLS</div>
+        </div>
+        <div class="pstage" style="color:var(--g)">Deployed ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GHA Workflow code -->
+  <div class="reveal" style="margin-top:40px">
+    <div class="cb">
+      <div class="cbh">
+        <div class="cbdots"><span class="r"></span><span class="y"></span><span class="g2"></span></div>
+        <div class="cbfn">.github/workflows/deploy.yml</div>
+        <div style="font-family:var(--fm);font-size:9px;color:var(--g)">● GitHub Actions · OIDC Auth</div>
+      </div>
+      <div class="cbbody"><pre><span class="kw">name</span>: <span class="str">Deploy Django to EKS</span>
+<span class="kw">on</span>:
+  <span class="kw">push</span>:
+    <span class="kw">branches</span>: [<span class="str">main</span>]
+
+<span class="kw">permissions</span>:
+  <span class="kw">id-token</span>: <span class="str">write</span>   <span class="cmt"># Required for OIDC</span>
+  <span class="kw">contents</span>: <span class="str">read</span>
+
+<span class="kw">jobs</span>:
+  <span class="var">deploy</span>:
+    <span class="kw">runs-on</span>: <span class="str">ubuntu-latest</span>
+    <span class="kw">steps</span>:
+      - <span class="kw">name</span>: <span class="str">Checkout code</span>
+        <span class="fn">uses</span>: actions/checkout@v4
+
+      - <span class="kw">name</span>: <span class="str">Configure AWS via OIDC</span>  <span class="cmt"># ← No static keys!</span>
+        <span class="fn">uses</span>: aws-actions/configure-aws-credentials@v4
+        <span class="kw">with</span>:
+          <span class="kw">role-to-assume</span>: <span class="var">${{ secrets.AWS_ROLE_ARN }}</span>
+          <span class="kw">aws-region</span>: <span class="var">${{ secrets.AWS_REGION }}</span>
+
+      - <span class="kw">name</span>: <span class="str">Login to ECR</span>
+        <span class="fn">run</span>: |
+          aws ecr get-login-password | docker login \
+            --username AWS --password-stdin \
+            <span class="str">${{ secrets.ECR_REGISTRY }}</span>
+
+      - <span class="kw">name</span>: <span class="str">Build & Push Docker Image</span>
+        <span class="fn">run</span>: |
+          <span class="var">IMAGE_TAG</span>=<span class="str">${{ github.sha }}</span>
+          docker build -t <span class="var">$ECR_REGISTRY</span>/<span class="var">$ECR_REPO</span>:<span class="var">$IMAGE_TAG</span> .
+          docker push <span class="var">$ECR_REGISTRY</span>/<span class="var">$ECR_REPO</span>:<span class="var">$IMAGE_TAG</span>
+
+      - <span class="kw">name</span>: <span class="str">Deploy to EKS via Helm</span>
+        <span class="fn">run</span>: |
+          aws eks update-kubeconfig \
+            --name <span class="var">${{ secrets.EKS_CLUSTER_NAME }}</span>
+          helm upgrade --install django-app ./django-chart \
+            --set <span class="var">image.tag=$IMAGE_TAG</span> \
+            --set <span class="var">image.repository=$ECR_REGISTRY/$ECR_REPO</span> \
+            --namespace production --create-namespace --wait</pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ ARCHITECTURE ═══════ -->
+<section id="arch">
+  <div class="slabel">System Design</div>
+  <h2 class="stitle">EKS Infrastructure <span>Architecture</span></h2>
+  <p class="sdesc">Full Kubernetes architecture on AWS EKS — AWS Load Balancer routes traffic to Django pods managed by Helm. EBS CSI provides persistent storage. Cert Manager handles TLS certificates automatically.</p>
+
+  <div class="asvgwrap reveal">
+    <svg viewBox="0 0 940 600" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:940px;margin:0 auto;display:block;font-family:'Space Mono',monospace">
+      <defs>
+        <marker id="a1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(32,210,140,0.55)"/>
+        </marker>
+        <marker id="a2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(59,130,246,0.55)"/>
+        </marker>
+        <marker id="a3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(245,158,11,0.55)"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="cb"/>
+          <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow2">
+          <feGaussianBlur stdDeviation="5" result="cb"/>
+          <feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- GitHub Actions box (top left) -->
+      <rect x="20" y="30" width="160" height="90" rx="12" fill="#081828" stroke="rgba(32,210,140,0.3)" stroke-width="1.5"/>
+      <text x="100" y="58" font-size="18" text-anchor="middle">🔧</text>
+      <text x="100" y="76" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">GitHub Actions</text>
+      <text x="100" y="92" font-size="9.5" fill="#4a7a96" text-anchor="middle">Build · Push · Deploy</text>
+      <text x="100" y="108" font-size="9" fill="rgba(32,210,140,0.5)" text-anchor="middle">OIDC · No Static Keys</text>
+      <circle cx="163" cy="34" r="5" fill="rgba(32,210,140,0.8)" filter="url(#glow)">
+        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- AWS ECR -->
+      <rect x="20" y="170" width="160" height="75" rx="12" fill="#081828" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
+      <text x="100" y="197" font-size="16" text-anchor="middle">📦</text>
+      <text x="100" y="213" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Amazon ECR</text>
+      <text x="100" y="229" font-size="9" fill="#4a7a96" text-anchor="middle">Container Registry</text>
+      <text x="100" y="242" font-size="9" fill="rgba(245,158,11,0.5)" text-anchor="middle">Tagged by git SHA</text>
+
+      <!-- Arrow GHA → ECR -->
+      <line x1="100" y1="120" x2="100" y2="168" stroke="rgba(32,210,140,0.4)" stroke-width="1.5" marker-end="url(#a1)"/>
+      <text x="106" y="148" font-size="8.5" fill="rgba(32,210,140,0.4)">docker push</text>
+
+      <!-- AWS EKS outer -->
+      <rect x="240" y="20" width="660" height="555" rx="16" fill="rgba(245,158,11,0.02)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5" stroke-dasharray="8,5"/>
+      <text x="835" y="44" font-size="11" fill="rgba(245,158,11,0.55)" font-family="Space Mono" letter-spacing="1">AWS EKS CLUSTER</text>
+
+      <!-- EKS Control Plane box -->
+      <rect x="260" y="40" width="180" height="75" rx="12" fill="#0a1e30" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/>
+      <text x="350" y="66" font-size="16" text-anchor="middle">☸️</text>
+      <text x="350" y="82" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">EKS Control Plane</text>
+      <text x="350" y="96" font-size="9" fill="#4a7a96" text-anchor="middle">Managed by AWS · v1.28+</text>
+      <text x="350" y="108" font-size="9" fill="rgba(59,130,246,0.5)" text-anchor="middle">API Server · OIDC · etcd</text>
+      <circle cx="422" cy="44" r="5" fill="rgba(59,130,246,0.8)" filter="url(#glow)">
+        <animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- AWS ALB -->
+      <rect x="480" y="40" width="175" height="75" rx="12" fill="#0a1e30" stroke="rgba(32,210,140,0.3)" stroke-width="1.5"/>
+      <text x="567" y="66" font-size="16" text-anchor="middle">⚖️</text>
+      <text x="567" y="82" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">AWS Load Balancer</text>
+      <text x="567" y="96" font-size="9" fill="#4a7a96" text-anchor="middle">Application LB (ALB)</text>
+      <text x="567" y="108" font-size="9" fill="rgba(32,210,140,0.5)" text-anchor="middle">:80 · :443 · SSL term.</text>
+
+      <!-- Client -->
+      <rect x="700" y="40" width="160" height="75" rx="12" fill="#0a1e30" stroke="rgba(32,210,140,0.25)" stroke-width="1.5"/>
+      <text x="780" y="66" font-size="16" text-anchor="middle">🌐</text>
+      <text x="780" y="82" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Client / Internet</text>
+      <text x="780" y="96" font-size="9" fill="#4a7a96" text-anchor="middle">HTTPS Request</text>
+      <text x="780" y="108" font-size="9" fill="rgba(32,210,140,0.5)" text-anchor="middle">Let's Encrypt TLS</text>
+
+      <!-- ALB ← Client -->
+      <line x1="698" y1="77" x2="658" y2="77" stroke="rgba(32,210,140,0.4)" stroke-width="1.5" marker-end="url(#a1)"/>
+      <text x="665" y="70" font-size="8" fill="rgba(32,210,140,0.4)">HTTPS</text>
+
+      <!-- EKS Workers area -->
+      <rect x="260" y="160" width="620" height="200" rx="12" fill="rgba(59,130,246,0.02)" stroke="rgba(59,130,246,0.12)" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="272" y="180" font-size="9" fill="rgba(59,130,246,0.35)" font-family="Space Mono" letter-spacing="1">WORKER NODE GROUP (t3.small × 2, autoscale 1→4)</text>
+
+      <!-- Django Pod 1 -->
+      <rect x="278" y="192" width="165" height="140" rx="12" fill="#081828" stroke="rgba(32,210,140,0.3)" stroke-width="1.5"/>
+      <text x="360" y="218" font-size="14" text-anchor="middle">🐍</text>
+      <text x="360" y="234" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Django Pod</text>
+      <text x="360" y="249" font-size="9" fill="#4a7a96" text-anchor="middle">Gunicorn · :8000</text>
+      <rect x="295" y="258" width="130" height="20" rx="5" fill="rgba(32,210,140,0.06)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="360" y="272" font-size="8.5" fill="rgba(32,210,140,0.6)" text-anchor="middle" font-family="Space Mono">STATUS: Running ✓</text>
+      <rect x="295" y="284" width="60" height="16" rx="4" fill="rgba(32,210,140,0.06)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="325" y="295" font-size="8" fill="#17f0a0" text-anchor="middle" font-family="Space Mono">Liveness ✓</text>
+      <rect x="362" y="284" width="63" height="16" rx="4" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
+      <text x="394" y="295" font-size="8" fill="#60a5fa" text-anchor="middle" font-family="Space Mono">Readiness ✓</text>
+      <text x="360" y="320" font-size="9" fill="#4a7a96" text-anchor="middle" font-family="Space Mono">cpu: 100m · mem: 256Mi</text>
+
+      <!-- Django Pod 2 -->
+      <rect x="462" y="192" width="165" height="140" rx="12" fill="#081828" stroke="rgba(32,210,140,0.25)" stroke-width="1.5"/>
+      <text x="544" y="218" font-size="14" text-anchor="middle">🐍</text>
+      <text x="544" y="234" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Django Pod</text>
+      <text x="544" y="249" font-size="9" fill="#4a7a96" text-anchor="middle">Gunicorn · :8000</text>
+      <rect x="479" y="258" width="130" height="20" rx="5" fill="rgba(32,210,140,0.06)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="544" y="272" font-size="8.5" fill="rgba(32,210,140,0.6)" text-anchor="middle" font-family="Space Mono">STATUS: Running ✓</text>
+      <rect x="479" y="284" width="60" height="16" rx="4" fill="rgba(32,210,140,0.06)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="509" y="295" font-size="8" fill="#17f0a0" text-anchor="middle" font-family="Space Mono">Liveness ✓</text>
+      <rect x="546" y="284" width="63" height="16" rx="4" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
+      <text x="578" y="295" font-size="8" fill="#60a5fa" text-anchor="middle" font-family="Space Mono">Readiness ✓</text>
+      <text x="544" y="320" font-size="9" fill="#4a7a96" text-anchor="middle" font-family="Space Mono">cpu: 100m · mem: 256Mi</text>
+
+      <!-- Kubernetes Service -->
+      <rect x="648" y="192" width="210" height="75" rx="12" fill="#0a1e30" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/>
+      <text x="753" y="218" font-size="14" text-anchor="middle">🔗</text>
+      <text x="753" y="234" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">K8s Service (ClusterIP)</text>
+      <text x="753" y="249" font-size="9" fill="#4a7a96" text-anchor="middle">selector: app=django-app</text>
+      <text x="753" y="262" font-size="9" fill="rgba(59,130,246,0.5)" text-anchor="middle">port 80 → targetPort 8000</text>
+
+      <!-- HPA -->
+      <rect x="648" y="280" width="210" height="60" rx="12" fill="#0a1e30" stroke="rgba(139,92,246,0.25)" stroke-width="1.5"/>
+      <text x="753" y="303" font-size="13" text-anchor="middle">📈</text>
+      <text x="753" y="318" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">HPA — Autoscaler</text>
+      <text x="753" y="333" font-size="9" fill="#4a7a96" text-anchor="middle">min:1 · max:4 · cpu 70%</text>
+
+      <!-- Add-ons row -->
+      <rect x="260" y="390" width="620" height="165" rx="12" fill="rgba(245,158,11,0.02)" stroke="rgba(245,158,11,0.1)" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="272" y="410" font-size="9" fill="rgba(245,158,11,0.35)" font-family="Space Mono" letter-spacing="1">EKS ADD-ONS</text>
+
+      <!-- EBS CSI -->
+      <rect x="278" y="420" width="170" height="120" rx="12" fill="#081828" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
+      <text x="363" y="446" font-size="14" text-anchor="middle">💾</text>
+      <text x="363" y="462" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">EBS CSI Driver</text>
+      <text x="363" y="477" font-size="9" fill="#4a7a96" text-anchor="middle">Persistent Volumes</text>
+      <text x="363" y="491" font-size="9" fill="rgba(245,158,11,0.5)" text-anchor="middle">EBS gp2/gp3 · IRSA</text>
+      <text x="363" y="505" font-size="9" fill="#4a7a96" text-anchor="middle">DB data persistence</text>
+      <text x="363" y="530" font-size="8" fill="rgba(245,158,11,0.4)" text-anchor="middle" font-family="Space Mono">addon: aws-ebs-csi-driver</text>
+
+      <!-- ALB Controller -->
+      <rect x="463" y="420" width="170" height="120" rx="12" fill="#081828" stroke="rgba(32,210,140,0.25)" stroke-width="1.5"/>
+      <text x="548" y="446" font-size="14" text-anchor="middle">⚖️</text>
+      <text x="548" y="462" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">LB Controller</text>
+      <text x="548" y="477" font-size="9" fill="#4a7a96" text-anchor="middle">AWS ALB Provisioner</text>
+      <text x="548" y="491" font-size="9" fill="rgba(32,210,140,0.5)" text-anchor="middle">Helm: eks/alb-ctrl</text>
+      <text x="548" y="505" font-size="9" fill="#4a7a96" text-anchor="middle">Ingress → ALB auto</text>
+      <text x="548" y="530" font-size="8" fill="rgba(32,210,140,0.4)" text-anchor="middle" font-family="Space Mono">v2.12.0 · IRSA</text>
+
+      <!-- Cert Manager -->
+      <rect x="648" y="420" width="210" height="120" rx="12" fill="#081828" stroke="rgba(139,92,246,0.25)" stroke-width="1.5"/>
+      <text x="753" y="446" font-size="14" text-anchor="middle">🔒</text>
+      <text x="753" y="462" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Cert Manager</text>
+      <text x="753" y="477" font-size="9" fill="#4a7a96" text-anchor="middle">TLS Auto-provisioning</text>
+      <text x="753" y="491" font-size="9" fill="rgba(139,92,246,0.5)" text-anchor="middle">Let's Encrypt · ACME</text>
+      <text x="753" y="505" font-size="9" fill="#4a7a96" text-anchor="middle">Auto cert renewal</text>
+      <text x="753" y="530" font-size="8" fill="rgba(139,92,246,0.4)" text-anchor="middle" font-family="Space Mono">jetstack/cert-manager</text>
+
+      <!-- Arrows ALB → Service -->
+      <line x1="567" y1="115" x2="567" y2="190" stroke="rgba(32,210,140,0.35)" stroke-width="1.5" marker-end="url(#a1)"/>
+      <text x="573" y="158" font-size="8" fill="rgba(32,210,140,0.4)">route</text>
+
+      <!-- Service → Pods -->
+      <line x1="648" y1="229" x2="627" y2="229" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" marker-end="url(#a2)"/>
+      <line x1="648" y1="235" x2="627" y2="262" stroke="rgba(59,130,246,0.3)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#a2)"/>
+
+      <!-- GHA → EKS arrow -->
+      <line x1="180" y1="75" x2="258" y2="75" stroke="rgba(32,210,140,0.35)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#a1)"/>
+      <text x="196" y="68" font-size="8" fill="rgba(32,210,140,0.4)">helm deploy</text>
+
+      <!-- ECR → Node (docker pull) -->
+      <path d="M100,245 Q180,280 276,252" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-dasharray="5,4" fill="none" marker-end="url(#a3)"/>
+      <text x="155" y="268" font-size="8" fill="rgba(245,158,11,0.4)">docker pull</text>
+
+      <!-- Animated data flows -->
+      <line x1="780" y1="115" x2="658" y2="77" stroke="rgba(32,210,140,0.15)" stroke-width="1.5" stroke-dasharray="200;0">
+        <animate attributeName="stroke-dashoffset" values="0;-250" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="658" y1="77" x2="557" y2="115" stroke="#17f0a0" stroke-width="2" stroke-dasharray="15,220">
+        <animate attributeName="stroke-dashoffset" values="0;-235" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="567" y1="115" x2="567" y2="190" stroke="#17f0a0" stroke-width="2" stroke-dasharray="12,150">
+        <animate attributeName="stroke-dashoffset" values="0;-162" dur="2.2s" repeatCount="indefinite" begin="0.4s"/>
+      </line>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════ HELM CHART ═══════ -->
+<section id="helm">
+  <div class="slabel">Kubernetes Packaging</div>
+  <h2 class="stitle">Helm Chart <span>Structure</span></h2>
+  <p class="sdesc">The <code style="background:var(--card);padding:2px 8px;border-radius:4px;font-family:var(--fm);font-size:12px;color:var(--g)">django-chart/</code> Helm chart defines all Kubernetes resources as templates — parameterized, reusable, and version-controlled. One command deploys or upgrades everything.</p>
+
+  <div class="helm-grid reveal">
+    <div>
+      <div class="helm-tree">
+        <div class="htitle">django-chart/ — Helm Chart Layout</div>
+        <div class="tree-item dir"><span class="ti">📁</span>django-chart/</div>
+        <div class="tree-item yaml"><span class="ti">  ├── </span>Chart.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— chart metadata & version</span></div>
+        <div class="tree-item yaml"><span class="ti">  ├── </span>values.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— default config values</span></div>
+        <div class="tree-item dir"><span class="ti">  └── </span>templates/</div>
+        <div class="tree-item file"><span class="ti">       ├── </span>deployment.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— K8s Deployment</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>service.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— ClusterIP Service</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>ingress.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— ALB Ingress</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>hpa.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— HorizontalPodAutoscaler</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>configmap.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— App config</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>secret.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— K8s Secrets</span></div>
+        <div class="tree-item file"><span class="ti">       ├── </span>pvc.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— PersistentVolumeClaim</span></div>
+        <div class="tree-item file"><span class="ti">       └── </span>certificate.yaml<span style="color:var(--text3);margin-left:6px;font-size:10px">— TLS cert (cert-manager)</span></div>
+      </div>
+
+      <div class="cb" style="margin-top:20px">
+        <div class="cbh">
+          <div class="cbdots"><span class="r"></span><span class="y"></span><span class="g2"></span></div>
+          <div class="cbfn">values.yaml — Key Config</div>
+        </div>
+        <div class="cbbody"><pre><span class="kw">replicaCount</span>: <span class="num">2</span>
+
+<span class="kw">image</span>:
+  <span class="kw">repository</span>: <span class="str"><aws-id>.dkr.ecr.us-east-1.amazonaws.com/saiapp</span>
+  <span class="kw">tag</span>: <span class="str">latest</span>   <span class="cmt"># overridden with git SHA by CI</span>
+  <span class="kw">pullPolicy</span>: <span class="str">Always</span>
+
+<span class="kw">service</span>:
+  <span class="kw">type</span>: <span class="str">ClusterIP</span>
+  <span class="kw">port</span>: <span class="num">80</span>
+  <span class="kw">targetPort</span>: <span class="num">8000</span>
+
+<span class="kw">resources</span>:
+  <span class="kw">requests</span>: {<span class="kw">cpu</span>: <span class="str">100m</span>, <span class="kw">memory</span>: <span class="str">256Mi</span>}
+  <span class="kw">limits</span>:   {<span class="kw">cpu</span>: <span class="str">500m</span>, <span class="kw">memory</span>: <span class="str">512Mi</span>}
+
+<span class="kw">autoscaling</span>:
+  <span class="kw">enabled</span>: <span class="str">true</span>
+  <span class="kw">minReplicas</span>: <span class="num">1</span>
+  <span class="kw">maxReplicas</span>: <span class="num">4</span>
+  <span class="kw">targetCPUUtilizationPercentage</span>: <span class="num">70</span>
+
+<span class="kw">ingress</span>:
+  <span class="kw">enabled</span>: <span class="str">true</span>
+  <span class="kw">className</span>: <span class="str">alb</span>
+  <span class="kw">host</span>: <span class="str">your-domain.com</span>
+  <span class="kw">tls</span>: <span class="str">true</span>   <span class="cmt"># cert-manager handles this</span></pre></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="helm-vals">
+        <div class="hval">
+          <div class="hval-icon">🔄</div>
+          <div class="hval-title">Rolling Updates</div>
+          <div class="hval-desc">Helm's rolling update strategy ensures zero downtime. New pods start before old ones terminate.</div>
+        </div>
+        <div class="hval">
+          <div class="hval-icon">↩️</div>
+          <div class="hval-title">Instant Rollback</div>
+          <div class="hval-desc"><code style="font-family:var(--fm);font-size:10px;color:var(--g)">helm rollback</code> reverts to any previous revision in seconds. 20+ revision history maintained.</div>
+        </div>
+        <div class="hval">
+          <div class="hval-icon">⚙️</div>
+          <div class="hval-title">Parameterized</div>
+          <div class="hval-desc">Override any value at deploy time using <code style="font-family:var(--fm);font-size:10px;color:var(--g)">--set</code>. Same chart works for dev and prod.</div>
+        </div>
+        <div class="hval">
+          <div class="hval-icon">📋</div>
+          <div class="hval-title">Version Control</div>
+          <div class="hval-desc">Every helm release is versioned. Full audit trail of what changed and when with <code style="font-family:var(--fm);font-size:10px;color:var(--g)">helm history</code>.</div>
+        </div>
+      </div>
+
+      <div class="cb" style="margin-top:20px">
+        <div class="cbh">
+          <div class="cbdots"><span class="r"></span><span class="y"></span><span class="g2"></span></div>
+          <div class="cbfn">Helm Commands — Lifecycle</div>
+        </div>
+        <div class="cbbody"><pre><span class="cmt"># First deploy</span>
+helm upgrade --install django-app ./django-chart \
+  --set <span class="var">image.tag</span>=<span class="str">abc1234</span> \
+  --namespace production \
+  --create-namespace --wait
+
+<span class="cmt"># Check release status</span>
+helm status django-app -n production
+
+<span class="cmt"># View all revisions</span>
+helm history django-app -n production
+<span class="cmt"># REVISION   STATUS     CHART           DESCRIPTION</span>
+<span class="cmt"># 1          deployed   django-0.1.0    Install</span>
+<span class="cmt"># 2          deployed   django-0.1.0    Upgrade</span>
+
+<span class="cmt"># Rollback if needed</span>
+helm rollback django-app 1 -n production
+
+<span class="cmt"># List all deployed releases</span>
+helm list -A</pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ OIDC SECURITY ═══════ -->
+<section id="oidc">
+  <div class="slabel">Zero Static Keys</div>
+  <h2 class="stitle">GitHub OIDC ↔ <span>AWS IAM Trust</span></h2>
+  <p class="sdesc">Instead of storing long-lived AWS access keys as GitHub secrets, this project uses OIDC federation — GitHub Actions requests a short-lived token from AWS on each run. No credentials can be leaked or rotated.</p>
+
+  <div class="oidc-flow reveal">
+    <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:900px;margin:0 auto;display:block">
+      <defs>
+        <marker id="oa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(32,210,140,0.7)"/>
+        </marker>
+        <marker id="ob" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(59,130,246,0.7)"/>
+        </marker>
+        <marker id="oc" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="rgba(245,158,11,0.7)"/>
+        </marker>
+      </defs>
+
+      <!-- Step 1: GitHub Actions -->
+      <rect x="20" y="90" width="160" height="120" rx="12" fill="#081828" stroke="rgba(32,210,140,0.35)" stroke-width="1.5"/>
+      <text x="100" y="118" font-size="20" text-anchor="middle">🔧</text>
+      <text x="100" y="136" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">GitHub Actions</text>
+      <text x="100" y="153" font-size="9" fill="#4a7a96" text-anchor="middle">Workflow triggered</text>
+      <text x="100" y="168" font-size="9" fill="#4a7a96" text-anchor="middle">on push to main</text>
+      <rect x="35" y="178" width="130" height="18" rx="5" fill="rgba(32,210,140,0.06)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="100" y="191" font-size="8" fill="#17f0a0" text-anchor="middle" font-family="Space Mono">id-token: write</text>
+
+      <!-- Arrow 1 → 2 -->
+      <line x1="180" y1="150" x2="240" y2="150" stroke="rgba(32,210,140,0.5)" stroke-width="1.5" marker-end="url(#oa)" stroke-dasharray="6,3">
+        <animate attributeName="stroke-dashoffset" values="0;-18" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <text x="188" y="143" font-size="8" fill="rgba(32,210,140,0.5)" font-family="Space Mono">OIDC token</text>
+      <text x="188" y="163" font-size="8" fill="rgba(32,210,140,0.35)" font-family="Space Mono">JWT request</text>
+
+      <!-- Step 2: GitHub OIDC Provider -->
+      <rect x="242" y="90" width="165" height="120" rx="12" fill="#081828" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/>
+      <text x="324" y="118" font-size="20" text-anchor="middle">🔑</text>
+      <text x="324" y="136" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">OIDC Provider</text>
+      <text x="324" y="153" font-size="9" fill="#4a7a96" text-anchor="middle">token.actions.</text>
+      <text x="324" y="168" font-size="9" fill="#4a7a96" text-anchor="middle">githubusercontent.com</text>
+      <text x="324" y="183" font-size="9" fill="rgba(59,130,246,0.5)" text-anchor="middle">Issues JWT token</text>
+      <text x="324" y="198" font-size="9" fill="#4a7a96" text-anchor="middle">signed &amp; short-lived</text>
+
+      <!-- Arrow 2 → 3 -->
+      <line x1="407" y1="150" x2="470" y2="150" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" marker-end="url(#ob)" stroke-dasharray="6,3">
+        <animate attributeName="stroke-dashoffset" values="0;-18" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+      </line>
+      <text x="415" y="143" font-size="8" fill="rgba(59,130,246,0.5)" font-family="Space Mono">JWT verify</text>
+      <text x="415" y="163" font-size="8" fill="rgba(59,130,246,0.35)" font-family="Space Mono">claim match</text>
+
+      <!-- Step 3: AWS IAM -->
+      <rect x="472" y="70" width="175" height="160" rx="12" fill="#081828" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
+      <text x="559" y="98" font-size="20" text-anchor="middle">🏛️</text>
+      <text x="559" y="116" font-size="13" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">AWS IAM</text>
+      <text x="559" y="133" font-size="9" fill="#4a7a96" text-anchor="middle">Identity Provider</text>
+      <text x="559" y="150" font-size="9" fill="rgba(245,158,11,0.5)" text-anchor="middle">Validates JWT claims:</text>
+      <text x="559" y="166" font-size="8.5" fill="#4a7a96" text-anchor="middle">repo: ak-127/sai-prj2</text>
+      <text x="559" y="181" font-size="8.5" fill="#4a7a96" text-anchor="middle">branch: main</text>
+      <text x="559" y="196" font-size="8.5" fill="#4a7a96" text-anchor="middle">audience: sts.amazonaws.com</text>
+      <text x="559" y="218" font-size="9" fill="rgba(245,158,11,0.5)" text-anchor="middle">Issues temp. credentials</text>
+
+      <!-- Arrow 3 → 4 -->
+      <line x1="647" y1="150" x2="715" y2="150" stroke="rgba(245,158,11,0.5)" stroke-width="1.5" marker-end="url(#oc)" stroke-dasharray="6,3">
+        <animate attributeName="stroke-dashoffset" values="0;-18" dur="1s" repeatCount="indefinite" begin="0.6s"/>
+      </line>
+      <text x="651" y="143" font-size="8" fill="rgba(245,158,11,0.5)" font-family="Space Mono">temp creds</text>
+      <text x="651" y="163" font-size="8" fill="rgba(245,158,11,0.35)" font-family="Space Mono">15min TTL</text>
+
+      <!-- Step 4: AWS Services -->
+      <rect x="717" y="70" width="165" height="80" rx="12" fill="#081828" stroke="rgba(32,210,140,0.25)" stroke-width="1.5"/>
+      <text x="799" y="98" font-size="18" text-anchor="middle">📦</text>
+      <text x="799" y="114" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">Amazon ECR</text>
+      <text x="799" y="130" font-size="9" fill="#4a7a96" text-anchor="middle">Push Docker image</text>
+      <text x="799" y="144" font-size="9" fill="rgba(32,210,140,0.5)" text-anchor="middle">saiapp:abc1234</text>
+
+      <rect x="717" y="170" width="165" height="60" rx="12" fill="#081828" stroke="rgba(59,130,246,0.25)" stroke-width="1.5"/>
+      <text x="799" y="195" font-size="18" text-anchor="middle">☸️</text>
+      <text x="799" y="212" font-size="12" font-weight="700" fill="#dff0ff" text-anchor="middle" font-family="Outfit">AWS EKS</text>
+      <text x="799" y="224" font-size="9" fill="rgba(59,130,246,0.5)" text-anchor="middle">helm upgrade --install</text>
+
+      <!-- Security badge -->
+      <rect x="280" y="240" width="320" height="46" rx="10" fill="rgba(32,210,140,0.04)" stroke="rgba(32,210,140,0.15)" stroke-width="1"/>
+      <text x="440" y="259" font-size="11" font-weight="700" fill="#17f0a0" text-anchor="middle" font-family="Outfit">✓ Zero Static Credentials Stored</text>
+      <text x="440" y="275" font-size="9" fill="#4a7a96" text-anchor="middle" font-family="Space Mono">AWS access keys never touch GitHub • Tokens expire in 15 minutes</text>
+    </svg>
+  </div>
+
+  <div class="secg" style="margin-top:24px">
+    <div class="secc">
+      <div class="seci">🔐</div>
+      <div class="sect">No Stored AWS Keys</div>
+      <div class="secd">AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are never stored anywhere. OIDC tokens are issued per-run and expire automatically.</div>
+    </div>
+    <div class="secc">
+      <div class="seci">📋</div>
+      <div class="sect">Least Privilege IAM</div>
+      <div class="secd">The GitHub IAM role has only ECR push and EKS describe access. No admin privileges. Production cluster uses <code style="font-family:var(--fm);font-size:10px;color:var(--g)">AmazonEKSEditPolicy</code>.</div>
+    </div>
+    <div class="secc">
+      <div class="seci">🛡️</div>
+      <div class="sect">Repo-Scoped Claims</div>
+      <div class="secd">The IAM trust policy validates the GitHub repo, org, and branch in the JWT claim. Other repos cannot assume this role — ever.</div>
+    </div>
+    <div class="secc">
+      <div class="seci">🔑</div>
+      <div class="sect">Secrets via GitHub Secrets</div>
+      <div class="secd">App secrets (Django key, DB password, CSRF origins) stored in GitHub encrypted secrets — injected as env vars at runtime, never in code.</div>
+    </div>
+    <div class="secc">
+      <div class="seci">🌐</div>
+      <div class="sect">TLS Everywhere</div>
+      <div class="secd">Cert Manager provisions Let's Encrypt certificates automatically. ALB terminates TLS. HTTP redirects to HTTPS enforced by Nginx annotations.</div>
+    </div>
+    <div class="secc">
+      <div class="seci">☸️</div>
+      <div class="sect">K8s EKS Access Entries</div>
+      <div class="secd">Uses modern EKS Access Entries API (v1.28+) instead of legacy aws-auth ConfigMap. Fine-grained, auditable cluster permission management.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ DEPLOYMENT GUIDE ═══════ -->
+<section id="deploy">
+  <div class="slabel">Step-by-Step Setup</div>
+  <h2 class="stitle">How to <span>Deploy This</span></h2>
+  <p class="sdesc">Full infrastructure setup guide — provision the EKS cluster once, then all subsequent application deployments happen automatically via GitHub Actions on every git push.</p>
+
+  <div class="dphases reveal">
+    <div class="dph" data-num="01">
+      <div class="dpnum">1</div>
+      <div class="dptitle">Create EKS Cluster</div>
+      <div class="dpcode"><span class="cmnt"># Provision managed cluster</span>
+eksctl create cluster \
+  --name django-cluster \
+  --region us-east-1 \
+  --node-type t3.small \
+  --nodes 2 --nodes-max 4 \
+  --managed
+
+<span class="cmnt"># Enable OIDC provider</span>
+eksctl utils associate-iam-oidc-provider \
+  --cluster django-cluster \
+  --approve</div>
+      <div class="dpdesc">Provision the EKS cluster with managed node groups. Enable OIDC provider — required for IRSA (IAM Roles for Service Accounts) used by EBS CSI and ALB controller.</div>
+    </div>
+
+    <div class="dph" data-num="02">
+      <div class="dpnum">2</div>
+      <div class="dptitle">Install EKS Add-ons</div>
+      <div class="dpcode"><span class="cmnt"># EBS CSI Driver (IRSA)</span>
+eksctl create iamserviceaccount \
+  --name ebs-csi-controller-sa \
+  --namespace kube-system \
+  --cluster django-cluster \
+  --role-name AmazonEKS_EBS_CSI_DriverRole \
+  --attach-policy-arn \
+    arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+  --approve
+
+aws eks create-addon \
+  --cluster-name django-cluster \
+  --addon-name aws-ebs-csi-driver</div>
+      <div class="dpdesc">Install EBS CSI driver, AWS Load Balancer Controller, and Cert Manager. Each uses IRSA for secure, pod-scoped IAM permissions. See DEPLOYMENT.md for full ALB and Cert Manager steps.</div>
+    </div>
+
+    <div class="dph" data-num="03">
+      <div class="dpnum">3</div>
+      <div class="dptitle">Configure OIDC Trust</div>
+      <div class="dpcode"><span class="cmnt"># Register GitHub as IdP in AWS IAM</span>
+Provider URL: https://token.actions.githubusercontent.com
+Audience: sts.amazonaws.com
+
+<span class="cmnt"># Create IAM Role: Github</span>
+Type: Web Identity
+org: ak-127 · repo: sai-prj2
+
+<span class="cmnt"># Grant EKS access (v1.28+)</span>
+aws eks create-access-entry \
+  --cluster-name django-cluster \
+  --principal-arn arn:aws:iam::<id>:role/Github
+
+aws eks associate-access-policy \
+  --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy</div>
+      <div class="dpdesc">Configure GitHub as an OIDC Identity Provider in AWS IAM. Create an IAM role scoped to your specific repo and branch. Grant EKS access using the modern Access Entries API.</div>
+    </div>
+
+    <div class="dph" data-num="04">
+      <div class="dpnum">4</div>
+      <div class="dptitle">Set GitHub Secrets</div>
+      <div class="dpcode">Settings → Secrets → Actions
+
+AWS_ROLE_ARN
+  arn:aws:iam::<id>:role/Github
+
+AWS_REGION        → us-east-1
+ECR_REPOSITORY    → saiapp
+EKS_CLUSTER_NAME  → django-cluster
+DJANGO_SECRET_KEY → <generated-key>
+CSRF_TRUSTED_ORIGINS → https://domain.com
+DJANGO_SUPERUSER_PASSWORD → <password>
+POSTGRES_PASSWORD → <db-password></div>
+      <div class="dpdesc">Add these secrets to your GitHub repository. The OIDC role ARN replaces AWS access keys entirely. All other secrets are injected as Helm values into Kubernetes secrets at deploy time.</div>
+    </div>
+
+    <div class="dph" data-num="05">
+      <div class="dpnum">5</div>
+      <div class="dptitle">Push & Auto-Deploy</div>
+      <div class="dpcode"><span class="cmnt"># From now on, every push deploys:</span>
+git add .
+git commit -m "feat: new feature"
+git push origin main
+
+<span class="cmnt"># GitHub Actions will automatically:</span>
+<span class="cmnt"># 1. Authenticate via OIDC</span>
+<span class="cmnt"># 2. Build & push Docker image to ECR</span>
+<span class="cmnt"># 3. helm upgrade --install</span>
+<span class="cmnt"># 4. Rolling update on EKS</span></div>
+      <div class="dpdesc">After Phases 1–4 are complete, the pipeline is fully automated. Every push to main triggers build, push, and deploy. Watch it run in the GitHub Actions tab — full live logs.</div>
+    </div>
+
+    <div class="dph" data-num="06">
+      <div class="dpnum">6</div>
+      <div class="dptitle">Verify & Monitor</div>
+      <div class="dpcode"><span class="cmnt"># Check pods are running</span>
+kubectl get pods -n production
+
+<span class="cmnt"># Check all K8s resources</span>
+kubectl get all -n production
+
+<span class="cmnt"># View Helm release history</span>
+helm history django-app -n production
+
+<span class="cmnt"># Rollback if needed</span>
+helm rollback django-app 1 -n production
+
+<span class="cmnt"># Watch logs live</span>
+kubectl logs -l app=django-app -n production -f</div>
+      <div class="dpdesc">Verify pods are healthy, check ingress for your ALB DNS name, confirm TLS certificates are issued by Cert Manager. Use <code style="font-family:var(--fm);font-size:10px;color:var(--g)">helm history</code> to see all releases.</div>
+    </div>
+  </div>
+
+  <!-- GitHub Secrets required table -->
+  <div class="reveal" style="margin-top:36px">
+    <div class="cb">
+      <div class="cbh">
+        <div class="cbdots"><span class="r"></span><span class="y"></span><span class="g2"></span></div>
+        <div class="cbfn">GitHub Repository Secrets Reference</div>
+        <div style="font-family:var(--fm);font-size:9px;color:var(--red)">⚠ Settings → Secrets and variables → Actions</div>
+      </div>
+      <div class="cbbody"><pre><span class="var">AWS_ROLE_ARN</span>                 <span class="cmt"># arn:aws:iam::<id>:role/Github</span>
+<span class="var">AWS_REGION</span>                   <span class="cmt"># us-east-1</span>
+<span class="var">ECR_REPOSITORY</span>               <span class="cmt"># saiapp</span>
+<span class="var">EKS_CLUSTER_NAME</span>             <span class="cmt"># django-cluster</span>
+<span class="var">DJANGO_SECRET_KEY</span>            <span class="cmt"># django-insecure-... (generate fresh)</span>
+<span class="var">CSRF_TRUSTED_ORIGINS</span>         <span class="cmt"># https://your-domain.com</span>
+<span class="var">DJANGO_SUPERUSER_PASSWORD</span>    <span class="cmt"># admin user password</span>
+<span class="var">POSTGRES_PASSWORD</span>            <span class="cmt"># database password</span>
+
+<span class="cmt"># Note: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are NOT needed.</span>
+<span class="cmt"># OIDC handles AWS authentication without any stored credentials.</span></pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TECH STACK ═══════ -->
+<section id="stack">
+  <div class="slabel">Full Technology Overview</div>
+  <h2 class="stitle">Complete <span>Tech Stack</span></h2>
+
+  <div class="stk reveal">
+    <div class="skrow hdr">
+      <div class="skc hdr">Category</div>
+      <div class="skc hdr">Technology</div>
+      <div class="skc hdr">Role in Project</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">🐍 App</div>
+      <div class="skc tech">Python · Django</div>
+      <div class="skc desc">Web framework serving the blog application. Gunicorn as WSGI server. Entrypoint script handles migrations on startup.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">🐳 Container</div>
+      <div class="skc tech">Docker · .dockerignore</div>
+      <div class="skc desc">Optimized multi-layer image build. Tagged with Git SHA for traceability. Stored in Amazon ECR private registry.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">☸️ Orchestration</div>
+      <div class="skc tech">Kubernetes · AWS EKS</div>
+      <div class="skc desc">Managed K8s cluster. Worker node auto-scaling 1→4. Rolling updates, self-healing pods, resource limits enforced.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">⎈ Packaging</div>
+      <div class="skc tech">Helm v3 · django-chart</div>
+      <div class="skc desc">All K8s resources templated as a Helm chart. Parameterized values, rollback history, same chart for dev and prod.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">🔧 CI/CD</div>
+      <div class="skc tech">GitHub Actions · OIDC</div>
+      <div class="skc desc">Declarative pipeline. Keyless AWS authentication via OIDC federation. Triggered on push to main. Zero manual steps.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">☁️ Cloud</div>
+      <div class="skc tech">AWS (EKS · ECR · IAM · EBS)</div>
+      <div class="skc desc">Fully managed infrastructure. IAM OIDC federation for secure CI access. EBS for persistent volume storage.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">⚖️ Ingress</div>
+      <div class="skc tech">AWS Load Balancer Controller</div>
+      <div class="skc desc">Automatically provisions AWS ALB from Kubernetes Ingress resources. Helm-installed with IRSA service account.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">🔒 TLS</div>
+      <div class="skc tech">Cert Manager · Let's Encrypt</div>
+      <div class="skc desc">Automatic certificate provisioning and renewal. No manual cert management. ACME DNS challenge via jetstack chart.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">📦 Storage</div>
+      <div class="skc tech">EBS CSI Driver · PVCs</div>
+      <div class="skc desc">Dynamic EBS volume provisioning via EKS addon. Persistent volume claims for database and static file storage.</div>
+    </div>
+    <div class="skrow">
+      <div class="skc cat">🐚 Scripts</div>
+      <div class="skc tech">Bash · entrypoint.sh</div>
+      <div class="skc desc">Container startup script runs DB migrations and collects static files before Gunicorn starts. Utility scripts for cluster ops.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ ROADMAP ═══════ -->
+<section id="roadmap" style="background:var(--bg2);border-top:1px solid var(--b1)">
+  <div class="slabel">What's Next</div>
+  <h2 class="stitle">Future <span>Roadmap</span></h2>
+
+  <div class="rlist reveal">
+    <div class="ri">
+      <div class="ribadge s">🏗️</div>
+      <div>
+        <div class="rititle">Terraform IaC</div>
+        <div class="ridesc">Move EKS cluster, VPC, IAM roles, and ECR provisioning to Terraform for fully version-controlled, reproducible infrastructure.</div>
+        <div class="ritag s">In Progress</div>
+      </div>
+    </div>
+    <div class="ri">
+      <div class="ribadge d">📊</div>
+      <div>
+        <div class="rititle">Prometheus + Grafana Monitoring</div>
+        <div class="ridesc">Add observability stack — pod metrics, Django app metrics, PostgreSQL dashboards, alerting on HPA scale events.</div>
+        <div class="ritag d">Planned</div>
+      </div>
+    </div>
+    <div class="ri">
+      <div class="ribadge d">🔵</div>
+      <div>
+        <div class="rititle">Blue-Green Deployments</div>
+        <div class="ridesc">Extend Helm chart to support blue-green strategy — run two environments simultaneously and shift ALB traffic on validation.</div>
+        <div class="ritag d">Planned</div>
+      </div>
+    </div>
+    <div class="ri">
+      <div class="ribadge f">🔄</div>
+      <div>
+        <div class="rititle">GitOps with ArgoCD</div>
+        <div class="ridesc">Replace Helm push-deploy with ArgoCD pull-based GitOps model — automatic sync on every change to the Helm chart in git.</div>
+        <div class="ritag f">Future</div>
+      </div>
+    </div>
+    <div class="ri">
+      <div class="ribadge f">🚨</div>
+      <div>
+        <div class="rititle">ELK Stack — Centralized Logging</div>
+        <div class="ridesc">Ship all container and K8s audit logs to Elasticsearch. Kibana dashboards for application error tracking and analysis.</div>
+        <div class="ritag f">Future</div>
+      </div>
+    </div>
+    <div class="ri">
+      <div class="ribadge s">🔐</div>
+      <div>
+        <div class="rititle">AWS Secrets Manager Integration</div>
+        <div class="ridesc">Replace GitHub secrets for app config with AWS Secrets Manager + External Secrets Operator for centralized secret management.</div>
+        <div class="ritag s">In Progress</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>Built by <span>Akash Kamble</span> — DevOps Engineer</div>
+  <div class="flinks">
+    <a href="https://github.com/ak-127/sai-prj2" target="_blank">GitHub Repo</a>
+    <a href="https://github.com/ak-127" target="_blank">Profile</a>
+  </div>
+  <div>EKS · Helm · GitHub Actions · <span>AWS</span></div>
+</footer>
+
+<script>
+// Cursor
+const cur = document.getElementById('cur'), cur2 = document.getElementById('cur2');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function tick(){
+  cur.style.transform=`translate(${mx-3.5}px,${my-3.5}px)`;
+  rx+=(mx-rx)*.1; ry+=(my-ry)*.1;
+  cur2.style.transform=`translate(${rx-14}px,${ry-14}px)`;
+  requestAnimationFrame(tick);
+})();
+document.querySelectorAll('a,button,.pbox,.dph,.secc,.hval,.ri,.skrow').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cur2.classList.add('h'));
+  el.addEventListener('mouseleave',()=>cur2.classList.remove('h'));
+});
+
+// Reveal on scroll
+const obs = new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('on')})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// Nav highlight
+const secs = document.querySelectorAll('section[id]');
+const nls = document.querySelectorAll('.nlinks a');
+const sObs = new IntersectionObserver(e=>{
+  e.forEach(x=>{
+    if(x.isIntersecting){
+      nls.forEach(l=>l.style.color='');
+      const l = document.querySelector(`.nlinks a[href="#${x.target.id}"]`);
+      if(l) l.style.color='var(--g)';
+    }
+  });
+},{threshold:.3});
+secs.forEach(s=>sObs.observe(s));
+
+// Hero canvas — floating K8s hex particles
+const canvas = document.getElementById('heroCanvas');
+const ctx = canvas.getContext('2d');
+function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight}
+resize();
+window.addEventListener('resize',resize);
+
+const hexes=[];
+for(let i=0;i<28;i++){
+  hexes.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    r:Math.random()*22+8,
+    vx:(Math.random()-.5)*.22,
+    vy:(Math.random()-.5)*.22,
+    a:Math.random()*Math.PI*2,
+    va:(Math.random()-.5)*.008,
+    op:Math.random()*.12+.03
+  });
+}
+
+function hexPath(x,y,r){
+  ctx.beginPath();
+  for(let i=0;i<6;i++){
+    const a=Math.PI/3*i-Math.PI/6;
+    i===0?ctx.moveTo(x+r*Math.cos(a),y+r*Math.sin(a)):ctx.lineTo(x+r*Math.cos(a),y+r*Math.sin(a));
+  }
+  ctx.closePath();
+}
+
+function drawCanvas(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hexes.forEach(h=>{
+    h.x+=h.vx; h.y+=h.vy; h.a+=h.va;
+    if(h.x<-60)h.x=canvas.width+60;
+    if(h.x>canvas.width+60)h.x=-60;
+    if(h.y<-60)h.y=canvas.height+60;
+    if(h.y>canvas.height+60)h.y=-60;
+    ctx.save();
+    ctx.translate(h.x,h.y);
+    ctx.rotate(h.a);
+    hexPath(0,0,h.r);
+    ctx.strokeStyle=`rgba(32,210,140,${h.op})`;
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.restore();
+  });
+  requestAnimationFrame(drawCanvas);
+}
+drawCanvas();
+
+// Pipeline node click pulse
+document.querySelectorAll('.pbox').forEach(n=>{
+  n.addEventListener('click',()=>{
+    n.style.transform='translateY(-8px) scale(1.06)';
+    n.style.borderColor='var(--g2)';
+    setTimeout(()=>{n.style.transform='';n.style.borderColor=''},500);
+  });
+});
+
+// Animate deploy steps on scroll
+const dpObs = new IntersectionObserver(e=>{
+  if(e[0].isIntersecting){
+    document.querySelectorAll('.dph').forEach((d,i)=>{
+      setTimeout(()=>{
+        d.style.borderColor='rgba(32,210,140,0.25)';
+        d.style.boxShadow='0 0 24px rgba(32,210,140,0.08)';
+      },i*120);
+    });
+  }
+},{threshold:.2});
+const dpSection = document.querySelector('.dphases');
+if(dpSection) dpObs.observe(dpSection);
+
+// Stagger reveal children
+document.querySelectorAll('.secg, .rlist, .helm-vals').forEach(parent=>{
+  const children = parent.querySelectorAll(':scope > *');
+  children.forEach((c,i)=>{
+    c.style.transitionDelay=`${i*0.07}s`;
+    c.classList.add('reveal');
+    obs.observe(c);
+  });
+});
+
+// Typing effect for hero subtitle
+const sub = document.querySelector('.herosub');
+if(sub){
+  const txt = sub.textContent;
+  sub.textContent='';
+  let i=0;
+  function type(){
+    if(i<txt.length){sub.textContent+=txt[i++];setTimeout(type,18)}
+  }
+  setTimeout(type,800);
+}
+</script>
+</body>
+</html>
